@@ -1,0 +1,49 @@
+{% extends "main.html" %}
+{% block title %}Food Group {{ food_group.id }} | Difficulty {{ difficulty }}{% endblock %}
+{% block head %}
+{{ super() }}
+{% endblock %}
+{% block header %}
+<div class="clearfix">
+    <div class="pull-left">
+        <a href="{{ url_for('show_home_page') }}" class="btn btn-info btn-md">
+            <span class="glyphicon glyphicon-home"></span> Home
+        </a>
+        <h1>{{ food_group.name }} Food</h1>
+        <h2>{{ difficulty }}</h2>
+    </div>
+    <div class="pull-right" style="min-height: 120px;">
+            {{ super() }}
+            <form action="{{ url_for('add_new_food_item', food_group_id = food_group.id, difficulty = difficulty) }}"
+            style="margin-top:110px;">
+            <input 
+            type="submit" 
+            value="Create New Item" 
+            class="btn btn-primary">
+        </form>
+    </div>
+</div>
+{% endblock %}
+{% block container %}
+{{ super() }}
+    <div class="row">
+        {% for food_item in food_items %}
+        <a href="{{ url_for('show_food_item', 
+        food_group_id = food_group.id,
+        difficulty = difficulty,
+        food_item_id = food_item.id) }}">
+            <div class="list-group-item">
+                <h3>{{ food_item.name }}</h3>
+                <p>{{ food_item.description }}</p>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+{% endblock %}
+{% block footer %}
+    <a href="{{ url_for('get_food_group_difficulty_json',
+    food_group_id = food_group.id,
+    difficulty = difficulty) }}">
+    <h3>Get JSON</h3>
+    </a>
+{% endblock %}

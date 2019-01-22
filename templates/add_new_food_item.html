@@ -1,0 +1,33 @@
+{% extends "header.html" %}
+{% block head %}
+{{ super() }}
+{% endblock %}
+{% block title %}Add New Food Item | Food Group Id {{ food_group.id }} | Difficulty {{ difficulty }}{% endblock %}
+{% block container %}
+    <div class="page-header">
+        <h1>New Item for {{ difficulty }} {{ food_group.name }} Foods</h1>
+    </div>
+    <dif class="row">
+        <form 
+        action="{{ url_for('add_new_food_item', food_group_id = food_group.id, difficulty = difficulty) }}" 
+        method="POST"
+        class="pull-left">
+            Item Name:
+            <br>
+            <input type="text" name="name" required>
+            <br>
+            Description:
+            <br>
+            <input type="text" name="description" required>
+            <br>
+            Recipe:
+            <br>
+            <input type="text" name="recipe" required>
+            <br>
+            <input type="submit" value="Submit" class="btn btn-success" style="margin-top: 10px;">
+            <a href="{{ url_for('show_food_group', food_group_id = food_group.id, difficulty = difficulty) }}">
+                <span class="btn btn-danger" style="margin-top: 10px;">Cancel</span>
+            </a>
+        </form>
+    </div>
+{% endblock %}

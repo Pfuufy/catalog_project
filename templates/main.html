@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        {% block head %}
+        <meta charset="utf-8">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+        <link rel="stylesheet" href="/static/main.css">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+        <script src="https://apis.google.com/js/platform.js" async defer></script>
+        <meta name="google-signin-client_id" content="309613015222-uhaha54nhfihv3cq00ut5q1konkuncdm.apps.googleusercontent.com">
+        <title>{% block title %}{% endblock %}</title>
+        <style>
+            footer {
+                position: fixed; 
+                bottom: 0; 
+                margin-bottom: 30px; 
+                border-top: solid black 1px;
+                width: 80%;
+                text-align: center
+            }
+            
+            #signoutButton {
+                height: 31px;
+                width: 100px;
+                border-radius: 3px;
+                border: none;
+                background-color: #4285F4;
+                color: white;
+                font-size: 9pt;
+            }
+        </style>
+        {% endblock %}
+    </head>
+    <body onload="checkLoggedInStatus()">
+        <div id="container" class="container">
+            <div id="errorMessage"></div>
+            <div id="main">
+                <div class="page-header">
+                    {% block header %}
+                    <div class="pull-right">
+                        <a href="{{ url_for('gdisconnect') }}">
+                            <button id="signoutButton">Sign Out</button>
+                        </a>
+                    </div>
+                    {% endblock %}
+                </div>
+                {% block container %}
+                    {% with messages = get_flashed_messages() %}
+                        {% if messages %}
+                            <ul>
+                            {% for message in messages %}
+                                <li>{{ message }}</li>
+                            {% endfor %}
+                            </ul>
+                        {% endif %}
+                    {% endwith %}
+                {% endblock %}
+                <footer class="page-footer">
+                {% block footer %}
+                {% endblock %}
+                </footer>
+            </div>
+        </div>
+    </body>
+</html>

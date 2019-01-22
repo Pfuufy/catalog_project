@@ -1,0 +1,59 @@
+{% extends "main.html" %}
+{% block title %}Food Item {{ food_item.id }} | {{ food_item.name }}{% endblock %}
+{% block head %}
+{{ super() }}
+{% endblock %}
+{% block header %}
+    <div class="clearfix">
+        {{ super() }}
+        <a href="{{ url_for('show_home_page') }}" class="btn btn-info btn-md">
+            <span class="glyphicon glyphicon-home"></span> Home
+        </a>
+        <br>
+        <a href="{{ url_for('show_food_group', food_group_id = food_group_id, difficulty = difficulty) }}">
+            <span class="glyphicon glyphicon-arrow-left" style="margin-top: 10px;"></span>
+            Back
+        </a>
+        <div>
+            <h1 class="pull-left">{{ food_item.name }}</h1>
+            <div class="pull-right">
+                <form action="{{ url_for('edit_food_item', 
+                food_group_id = food_group_id, 
+                difficulty = difficulty, 
+                food_item_id = food_item.id) }}"
+                class="pull-left"
+                style="margin-right: 5px;">
+                    <input type="submit" value="Edit" class="btn btn-warning">
+                </form>
+                <form action="{{ url_for('delete_food_item', 
+                food_group_id = food_group_id, 
+                difficulty = difficulty, 
+                food_item_id = food_item.id) }}"
+                class="pull-right">
+                    <input type="submit" value="Delete" class="btn btn-danger">
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block container %}
+{{ super() }}
+    <div class="row">
+        <div class="col-xs-12">
+            <h2>Description: {{ food_item.description }}</h2>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-xs-12">
+            <h3>Recipte: {{ food_item.recipe }}</h3>
+        </div>
+    </div>
+{% endblock %}
+{% block footer %}
+    <a href="{{ url_for('get_food_item_json',
+    food_group_id = food_group_id,
+    difficulty = difficulty,
+    food_item_id = food_item.id) }}">
+    <h3>Get JSON</h3>
+    </a>
+{% endblock %}
