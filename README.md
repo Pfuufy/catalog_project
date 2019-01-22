@@ -2,20 +2,21 @@
 ---
 ## Get Started
 ### These are the steps you have to take to run this app:
-1. Install VirtualBox
-2. Install Vagrant
-3. Configure the virtual machine
+1. Clone or copy this repo onto your computer.
+2. Install VirtualBox
+3. Install Vagrant
+4. Configure the virtual machine
     The zip file to configure the virtual machine is included. Its called 'fsnd-virtual-machine.zip'. Run this file to configure the virtual machine.
-4. Power on the virtual machine
+5. Power on the virtual machine
     From the command line (bash terminal), run the command `vagrant up` to do this.
-5. Log into the virtual machine
+6. Log into the virtual machine
     From the command line, run the command `vagrant ssh` to log in. 
-6. Navigate to the folder where all the files for this project are stored.
-7. Initialize the Postgres database
+7. Navigate to the folder where all the files for this project are stored.
+8. Initialize the Postgres database
     From the command line, run the command `python database_setup.py`. This will set up all of the tables necessary for this app to run.
-8. Start the server!
+9. Start the server!
     From the command line, run the command `python main.py` to start the server.
-9. Visit the website!
+10. Visit the website!
     The server is being hosted on port 8000. So the address is 'http://localhost:8000'
 
 ## Extra notes
