@@ -16,6 +16,7 @@
         </a>
         <div>
             <h1 class="pull-left">{{ food_item.name }}</h1>
+            {% if current_user_email == creator_email %}
             <div class="pull-right">
                 <form action="{{ url_for('edit_food_item', 
                 food_group_id = food_group_id, 
@@ -33,6 +34,7 @@
                     <input type="submit" value="Delete" class="btn btn-danger">
                 </form>
             </div>
+            {% endif %}
         </div>
     </div>
 {% endblock %}

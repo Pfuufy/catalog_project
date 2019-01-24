@@ -13,14 +13,17 @@
         <h2>{{ difficulty }}</h2>
     </div>
     <div class="pull-right" style="min-height: 120px;">
-            {{ super() }}
-            <form action="{{ url_for('add_new_food_item', food_group_id = food_group.id, difficulty = difficulty) }}"
+        {{ super() }}
+        {% if username %}
+            <form 
+            action="{{ url_for('add_new_food_item', food_group_id = food_group.id, difficulty = difficulty) }}"
             style="margin-top:110px;">
-            <input 
-            type="submit" 
-            value="Create New Item" 
-            class="btn btn-primary">
-        </form>
+                <input 
+                type="submit" 
+                value="Create New Item" 
+                class="btn btn-primary">
+            </form>
+        {% endif %}
     </div>
 </div>
 {% endblock %}

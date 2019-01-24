@@ -1,3 +1,5 @@
+#!/usr/bin/env python2
+
 from flask import (Flask,
                    render_template,
                    url_for,
@@ -74,6 +76,7 @@ def gconnect():
            % access_token)
     h = httplib2.Http()
     result = json.loads(h.request(url, 'GET')[1])
+
     # If there was an error in the access token info, abort.
     if result.get('error') is not None:
         response = make_response(json.dumps(result.get('error')), 500)
@@ -92,7 +95,6 @@ def gconnect():
     if result['issued_to'] != CLIENT_ID:
         response = make_response(
             json.dumps("Token's client ID does not match app's."), 401)
-        print "Token's client ID does not match app's."
         response.headers['Content-Type'] = 'application/json'
         return response
 
@@ -117,7 +119,11 @@ def gconnect():
 
     data = answer.json()
 
-    login_session['username'] = data['name']
+    # A real name is not guaranteed
+    try:
+        login_session['username'] = data['name']
+    except KeyError:
+        login_session['username'] = 'username'
     login_session['email'] = data['email']
     flash('You are now logged in as %s' % login_session['username'])
 
@@ -133,11 +139,8 @@ def gdisconnect():
     # Can't log out if you're not logged in ;)
     access_token = login_session.get('access_token')
     if access_token is None:
-        response = make_response(
-            json.dumps('Current user not connected.'),
-            401)
-        response.headers['Content-Type'] = 'application/json'
-        return response
+        flash('Current user not logged in')
+        return redirect(url_for('/'))
 
     # Revoke access token for user
     requests.post('https://accounts.google.com/o/oauth2/revoke',
@@ -163,6 +166,10 @@ def show_home_page():
     session = DBSession()
     if request.method == 'POST':
 
+        # There are two different if statements here because there are
+        # two different forms on this page. These distinguish between
+        # which form to use and gather info from.
+
         # Gather info to display food group
         if 'inputDifficulty' in request.form:
             food_group_id = request.form.get('inputFoodGroup')
@@ -172,25 +179,34 @@ def show_home_page():
                     difficulty=difficulty)))
 
         # Add a new food group
-        if 'newFoodGroup' in request.form:
+        if ('newFoodGroup' in request.form) and (login_session['username']
+                                                 is not None):
             food_group_name = request.form.get('newFoodGroup')
             new_food_group = FoodGroup(name=food_group_name)
             session.add(new_food_group)
             session.commit()
+            flash('New food group created!')
             return redirect(url_for('show_home_page'))
 
     else:
         if 'username' not in login_session:
+            username = None
+
+            # Get and store csrf state token for later verification
             state = get_csrf_token()
             login_session['state'] = state
-            food_groups = session.query(FoodGroup).all()
-            return render_template('public_home.html',
-                                   food_groups=food_groups,
-                                   state=state)
         else:
-            # Get and store csrf state token for later verification
-            food_groups = session.query(FoodGroup).all()
-            return render_template('home.html', food_groups=food_groups)
+            username = login_session['username']
+
+            # State is defined as None just so the state token isnt
+            # needlessly floating around, potentially causing
+            # security issues.
+            state = None
+        food_groups = session.query(FoodGroup).all()
+        return render_template('home.html',
+                               food_groups=food_groups,
+                               state=state,
+                               username=username)
 
 # Food Group Page #
 
@@ -206,18 +222,19 @@ def show_food_group(food_group_id, difficulty):
                   .filter_by(food_group_id=food_group_id,
                              difficulty=difficulty).all())
     if 'username' not in login_session:
+        username = None
         state = get_csrf_token()
         login_session['state'] = state
-        return render_template('public_show_food_group.html',
-                               food_group=food_group,
-                               food_items=food_items,
-                               difficulty=difficulty,
-                               state=state)
     else:
-        return render_template('show_food_group.html',
-                               food_group=food_group,
-                               food_items=food_items,
-                               difficulty=difficulty)
+        username = login_session['username']
+        state = None
+
+    return render_template('show_food_group.html',
+                           food_group=food_group,
+                           food_items=food_items,
+                           difficulty=difficulty,
+                           state=state,
+                           username=username)
 
 # Individual item pages #
 
@@ -230,19 +247,29 @@ def show_food_item(food_group_id, difficulty, food_item_id):
     session = DBSession()
     food_item = session.query(FoodItem).filter_by(id=food_item_id).one()
 
-    if 'username' not in login_session:
+    # Using login_session['email'] and login_session['username']
+    # because this page already reiles on the email for linking
+    # the new item to its creator and the 'main.html' file needs
+    # the username information to determine whether to display
+    # the sigin or signout button.
+    if 'email' not in login_session:
+        current_user_email = None
+        username = None
         state = get_csrf_token()
         login_session['state'] = state
-        return render_template('public_show_food_item.html',
-                               food_group_id=food_group_id,
-                               difficulty=difficulty,
-                               food_item=food_item,
-                               state=state)
     else:
-        return render_template('show_food_item.html',
-                               food_group_id=food_group_id,
-                               difficulty=difficulty,
-                               food_item=food_item)
+        current_user_email = login_session['email']
+        username = login_session['username']
+        state = None
+
+    return render_template('show_food_item.html',
+                           food_group_id=food_group_id,
+                           difficulty=difficulty,
+                           food_item=food_item,
+                           state=state,
+                           current_user_email=current_user_email,
+                           creator_email=food_item.creator_email,
+                           username=username)
 
 
 @app.route("/food-groups/<int:food_group_id>/difficulty/" +
@@ -252,8 +279,7 @@ def add_new_food_item(food_group_id, difficulty):
 
     session = DBSession()
 
-    # Gather info to add new food item
-    if request.method == 'POST':
+    if request.method == 'POST' and login_session['username'] is not None:
         name = request.form['name']
         description = request.form['description']
         recipe = request.form['recipe']
@@ -261,7 +287,8 @@ def add_new_food_item(food_group_id, difficulty):
                             difficulty=difficulty,
                             description=description,
                             recipe=recipe,
-                            food_group_id=food_group_id)
+                            food_group_id=food_group_id,
+                            creator_email=login_session['email'])
         session.add(new_item)
         session.commit()
         flash('Item added')
@@ -286,7 +313,7 @@ def edit_food_item(food_group_id, difficulty, food_item_id):
     session = DBSession()
 
     # Gather item details to edit item if new information is present
-    if request.method == 'POST':
+    if request.method == 'POST' and login_session['username'] is not None:
         food_item = (session.query(FoodItem)
                      .filter_by(id=food_item_id).one())
         if request.form['name']:
@@ -319,7 +346,7 @@ def delete_food_item(food_group_id, difficulty, food_item_id):
     session = DBSession()
 
     # Delete food item
-    if request.method == 'POST':
+    if request.method == 'POST' and login_session['username'] is not None:
         food_item = session.query(FoodItem).filter_by(id=food_item_id).one()
         session.delete(food_item)
         session.commit()
@@ -378,4 +405,4 @@ def get_food_item_json(food_group_id, difficulty, food_item_id):
 if __name__ == '__main__':
     app.secret_key = 'super secret key'
     app.debug = True
-    app.run(host='0.0.0.0', port=8000)
+    app.run(host='0.0.0.0', port=2000)

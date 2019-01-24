@@ -4,7 +4,6 @@
         {% block head %}
         <meta charset="utf-8">
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-        <link rel="stylesheet" href="/static/main.css">
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
         <script src="https://apis.google.com/js/platform.js" async defer></script>
@@ -32,17 +31,31 @@
         </style>
         {% endblock %}
     </head>
-    <body onload="checkLoggedInStatus()">
+    <body>
         <div id="container" class="container">
             <div id="errorMessage"></div>
             <div id="main">
                 <div class="page-header">
                     {% block header %}
                     <div class="pull-right">
-                        <a href="{{ url_for('gdisconnect') }}">
-                            <button id="signoutButton">Sign Out</button>
-                        </a>
-                    </div>
+                        {% if username %}
+                            <a href="{{ url_for('gdisconnect') }}">
+                                <button id="signoutButton">Sign Out</button>
+                            </a>
+                        {% else %}
+                            <div id="signinButton" class="pull-left">
+                                <span class="g-signin"
+                                    data-scope="openid email"
+                                    data-clientid="309613015222-938c9stnlo49qe1me0hinh30d8v4aa35.apps.googleusercontent.com"
+                                    data-redirecturi="postmessage"
+                                    data-accesstype="offline"
+                                    data-cookiepolicy="single_host_origin"
+                                    data-callback="signInCallback"
+                                    data-approvalprompt="force">
+                                </span>
+                            </div>
+                        {% endif %}
+                        </div>
                     {% endblock %}
                 </div>
                 {% block container %}
@@ -63,4 +76,29 @@
             </div>
         </div>
     </body>
+    <script>
+        function signInCallback(authResult) {
+            if (authResult['code']) {
+                // Send the one-time-use code to the server, if the server responds, write a 
+                // 'login successful' message to the web page and then redirect back to the main restaurants page
+                $.ajax({
+                    type: 'POST',
+                    url: '/gconnect?state={{state}}',
+                    processData: false,
+                    data: authResult['code'],
+                    contentType: 'application/octet-stream; charset=utf-8',
+                    success: function(result) {
+                    // Handle or verify the server response if necessary.
+                        if (result) {
+                            location.reload();
+                        } else if (authResult['error']) {
+                            console.log('There was an error: ' + authResult['error']);
+                        }
+                    }
+                })
+            } else {
+                $('#result').html('Failed to make a server-side call. Check your configuration and console.');
+            }
+        }
+    </script>
 </html>
