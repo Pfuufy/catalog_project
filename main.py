@@ -221,6 +221,7 @@ def show_food_group(food_group_id, difficulty):
     food_items = (session.query(FoodItem)
                   .filter_by(food_group_id=food_group_id,
                              difficulty=difficulty).all())
+
     if 'username' not in login_session:
         username = None
         state = get_csrf_token()
@@ -311,11 +312,11 @@ def edit_food_item(food_group_id, difficulty, food_item_id):
     """Allows user to edit food item"""
 
     session = DBSession()
+    food_item = (session.query(FoodItem).filter_by(id=food_item_id).one())
 
     # Gather item details to edit item if new information is present
-    if request.method == 'POST' and login_session['username'] is not None:
-        food_item = (session.query(FoodItem)
-                     .filter_by(id=food_item_id).one())
+    if (request.method == 'POST') and (login_session['email'] == 
+                                       food_item.creator_email):
         if request.form['name']:
             food_item.name = request.form['name']
         if request.form['description']:
@@ -331,7 +332,6 @@ def edit_food_item(food_group_id, difficulty, food_item_id):
 
     # Display the edit food item page
     else:
-        food_item = session.query(FoodItem).filter_by(id=food_item_id).one()
         return render_template('edit_food_item.html',
                                food_group_id=food_group_id,
                                difficulty=difficulty,
@@ -344,10 +344,11 @@ def delete_food_item(food_group_id, difficulty, food_item_id):
     """Allows user to delete food item"""
 
     session = DBSession()
+    food_item = session.query(FoodItem).filter_by(id=food_item_id).one()
 
     # Delete food item
-    if request.method == 'POST' and login_session['username'] is not None:
-        food_item = session.query(FoodItem).filter_by(id=food_item_id).one()
+    if (request.method == 'POST') and (login_session['email'] == 
+                                     food_item.creator_email):
         session.delete(food_item)
         session.commit()
         return redirect(url_for('show_food_group',
@@ -356,8 +357,6 @@ def delete_food_item(food_group_id, difficulty, food_item_id):
 
     # Display delete screen for food item
     else:
-        food_item = (session.query(FoodItem)
-                     .filter_by(id=food_item_id).one())
         return render_template('delete_food_item.html',
                                food_group_id=food_group_id,
                                difficulty=difficulty,
