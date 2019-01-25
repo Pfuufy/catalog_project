@@ -1,49 +1,76 @@
 {% extends "main.html" %}
 {% block title %}Selection{% endblock %}
 {% block head %}
-    {{ super() }}
+{{ super() }}
 {% endblock %}
 {% block header %}
-    {{ super() }}
-    <h1>What Do I Want To Eat?</h1>
+{{ super() }}
+<h1>What Do I Want To Eat?</h1>
 {% endblock %}
 {% block container %}
 {{ super() }}
-    <div>
-        <form action="{{ url_for('show_home_page') }}" method="POST">
-            <div class="row">
-                <h2>What Are You in the Mood For?</h2>
-                <select name="inputFoodGroup">
-                    {% for food_group in food_groups %}
-                    <option value="{{ food_group.id }}">{{ food_group.name }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="row">
-                <h2>How comfortable are you in the kitchen?</h2>
-                <select name="inputDifficulty">
-                    <option value="Beginner">What's a stove?</option>
-                    <option value="Intermediate">Knows how many tea spoons are in a table spoon</option>
-                    <option value="Expert">Gordon Ramsay</option>
-                </select>
-            </div>
-            <div class="row" style="margin-top: 10px;">
-                <input type="submit" value="Go" class="btn btn-success">
-            </div>
-        </form>
-        {% if username %}
-        <form action="{{ url_for('show_home_page') }}" method="POST">
-            <div class="row" style="margin-top: 100px;">
-                <h4>Don't see the food group you're looking for? Add a new one</h4>
-                <input type="text" name="newFoodGroup" required>
-            </div>
-            <div class="row">
-                <input type="submit" value="Add" class="btn btn-warning" style="margin-top: 10px;">
-            </div>
-        </form>
-        {% endif %}
-    </div>
+<div>
+    <form 
+        action="{{ url_for('show_home_page') }}" 
+        method="POST"
+    >
+        <div class="row">
+            <h2>What Are You in the Mood For?</h2>
+            <select name="inputFoodGroup">
+                {% for food_group in food_groups %}
+                <option value="{{ food_group.id }}">{{ food_group.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="row">
+            <h2>How comfortable are you in the kitchen?</h2>
+            <select name="inputDifficulty">
+                <option value="Beginner">What's a stove?</option>
+                <option value="Intermediate">Knows how many tea spoons are in a table spoon</option>
+                <option value="Expert">Gordon Ramsay</option>
+            </select>
+        </div>
+        <div 
+            class="row" 
+            style="margin-top: 10px;"
+        >
+            <input 
+                type="submit" 
+                value="Go" 
+                class="btn btn-success"
+            >
+        </div>
+    </form>
+    {% if username %}
+    <form 
+        action="{{ url_for('show_home_page') }}" 
+        method="POST"
+    >
+        <div 
+            class="row" 
+            style="margin-top: 100px;"
+        >
+            <h4>Don't see the food group you're looking for? Add a new one</h4>
+            <input 
+                type="text" 
+                name="newFoodGroup" 
+                required
+            >
+        </div>
+        <div class="row">
+            <input 
+                type="submit" 
+                value="Add" 
+                class="btn btn-warning" 
+                style="margin-top: 10px;"
+            >
+        </div>
+    </form>
+    {% endif %}
+</div>
 {% endblock %}
 {% block footer %}
-    <a href="{{ url_for('get_food_groups_json') }}"><h3>Get JSON</h3></a>
+<a href="{{ url_for('get_food_groups_json') }}">
+    <h3>Get JSON</h3>
+</a>
 {% endblock %}

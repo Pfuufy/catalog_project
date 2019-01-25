@@ -4,17 +4,25 @@
 {% endblock %}
 {% block title %}Delete Food Item {{ food_item.name }}{% endblock %}
 {% block container %}
-    <h1>Are you sure you want to delete {{ food_item.name }}?</h1>
-    <form action="{{ url_for('delete_food_item', 
-    food_group_id = food_group_id, 
-    difficulty = difficulty, 
-    food_item_id = food_item.id) }}"
-    method="POST">
-        <input type="submit" value="Yes" class="btn btn-success">
-        <a 
-        href="{{ url_for('show_food_group', food_group_id = food_group_id, difficulty = difficulty) }}"
+<h1>Are you sure you want to delete {{ food_item.name }}?</h1>
+<form 
+    action="{{ url_for('delete_food_item', 
+               food_group_id = food_group_id, 
+               difficulty = difficulty, 
+               food_item_id = food_item.id) }}"
+    method="POST"
+>
+    <input 
+        type="submit" 
+        value="Yes" 
+        class="btn btn-success"
+    >
+    <a 
+        href="{{ url_for('show_food_group', 
+                food_group_id = food_group_id, 
+                difficulty = difficulty) }}"
         class="btn btn-danger">
-            <span>No</span>
-        </a>
-    </form>
+        <span>No</span>
+    </a>
+</form>
 {% endblock %}
