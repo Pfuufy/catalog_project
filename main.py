@@ -125,6 +125,21 @@ def gconnect():
     except KeyError:
         login_session['username'] = 'username'
     login_session['email'] = data['email']
+
+    # Check if user already logged in
+    try:
+        flash('user already exists')
+        gplus_id = (login_session.query(User)
+                    .filter_by(gplus_id=login_session['gplus_id']).one())
+    except NoneType:
+        flash('creating new user')
+        session = DBSession()
+        new_user = User(username=login_session['username'],
+                        gplus_id=login_session['gplus_id'],
+                        email=login_session['email'])
+        session.add(new_user)
+        session.commit()
+
     flash('You are now logged in as %s' % login_session['username'])
 
     # This function must return something, doesn't matter what.
@@ -312,11 +327,22 @@ def edit_food_item(food_group_id, difficulty, food_item_id):
     """Allows user to edit food item"""
 
     session = DBSession()
-    food_item = (session.query(FoodItem).filter_by(id=food_item_id).one())
+    food_item = session.query(FoodItem).filter_by(id=food_item_id).one()
+    creator_gplus_id = (session.query(User)
+                        .filter_by(gplus_id=food_item.creator_gplus_id.one()))
 
-    # Gather item details to edit item if new information is present
-    if (request.method == 'POST') and (login_session['email'] == 
-                                       food_item.creator_email):
+    # I'm verifying authenticity based on the gplus_id for a few reasons:
+    # 1. It's unique.
+    # 2. It's already stored in the login_session.
+    # 3. Google login is currently the only way to login anyway.
+    # 4. Verifying by email is not fully reliable. It is likely that there
+    # would be no problems, but I want to safeguard against someone somehow
+    # logging in under someone else's old email and using that.
+
+    if (request.method == 'POST') and (login_session['gplus_id'] ==
+                                       creator_gplus_id):
+
+        # Gather item details to edit item if new information is present
         if request.form['name']:
             food_item.name = request.form['name']
         if request.form['description']:
@@ -338,6 +364,8 @@ def edit_food_item(food_group_id, difficulty, food_item_id):
                                food_item=food_item)
 
 
+# Long Routes have to be formatted with concatenation because using multi-line
+# string techniques result in really weird url paths.
 @app.route("/food-groups/<int:food_group_id>/difficulty/" +
            "<difficulty>/<int:food_item_id>/delete", methods=['GET', 'POST'])
 def delete_food_item(food_group_id, difficulty, food_item_id):
@@ -345,10 +373,12 @@ def delete_food_item(food_group_id, difficulty, food_item_id):
 
     session = DBSession()
     food_item = session.query(FoodItem).filter_by(id=food_item_id).one()
+    creator_gplus_id = (session.query(User)
+                        .filter_by(gplus_id=food_item.creator_gplus_id.one()))
 
     # Delete food item
-    if (request.method == 'POST') and (login_session['email'] == 
-                                     food_item.creator_email):
+    if (request.method == 'POST') and (login_session['gplus_id'] ==
+                                       creator_gplus_id):
         session.delete(food_item)
         session.commit()
         return redirect(url_for('show_food_group',

@@ -9,11 +9,13 @@ from sqlalchemy.ext.declarative import declarative_base
 Base = declarative_base()
 
 
-# class User(Base):
-#     __tablename__ = 'User'
+class User(Base):
+    __tablename__ = 'User'
 
-#     username = Column(String(100), nullable=False)
-#     email = Column(String(300), primary_key=True)
+    username = Column(String(100))
+    id = Column(Integer, primary_key=True)
+    gplus_id = Column(Integer, nullable=False)
+    email = Column(String(300), nullable=False)
 
 
 class FoodGroup(Base):
@@ -38,9 +40,10 @@ class FoodItem(Base):
     difficulty = Column(String(6), nullable=False)
     description = Column(String(150), nullable=False)
     recipe = Column(String(1000), nullable=False)
-    creator_email = Column(String(100), nullable=False)
-    food_group_id = Column(Integer, ForeignKey('FoodGroup.id'))
+    creator = relationship(User)
+    creator_gplus_id = Column(String(100), ForeignKey('User.gplus_id'))
     food_group = relationship(FoodGroup)
+    food_group_id = Column(Integer, ForeignKey('FoodGroup.id'))
 
     @property
     def serialize(self):
@@ -50,7 +53,7 @@ class FoodItem(Base):
             'difficulty': self.difficulty,
             'description': self.description,
             'recipe': self.recipe,
-            'creator': self.creator_email
+            'creator_gplus_id': self.creator_gplus_id
         }
 
 
