@@ -17,6 +17,9 @@
         <div class="row">
             <h2>What Are You in the Mood For?</h2>
             <select name="inputFoodGroup">
+                {% if no_food_groups == True %}
+                    <option value="-1">None</option>
+                {% endif %}
                 {% for food_group in food_groups %}
                 <option value="{{ food_group.id }}">{{ food_group.name }}</option>
                 {% endfor %}

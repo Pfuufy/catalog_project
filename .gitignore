@@ -1,2 +1,5 @@
 client_secrets.json
 .vscode
+dbstuff.py
+foodCatalog.db
+database_setup.pyc

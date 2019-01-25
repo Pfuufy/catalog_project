@@ -15,6 +15,7 @@ from oauth2client.client import (flow_from_clientsecrets,
                                  OAuth2WebServerFlow,
                                  FlowExchangeError)
 from database_setup import (Base,
+                            User,
                             FoodGroup,
                             FoodItem)
 import httplib2
@@ -128,11 +129,9 @@ def gconnect():
 
     # Check if user already logged in
     try:
-        flash('user already exists')
         gplus_id = (login_session.query(User)
                     .filter_by(gplus_id=login_session['gplus_id']).one())
-    except NoneType:
-        flash('creating new user')
+    except:
         session = DBSession()
         new_user = User(username=login_session['username'],
                         gplus_id=login_session['gplus_id'],
@@ -179,7 +178,14 @@ def show_home_page():
     """Displays the home page"""
 
     session = DBSession()
+    food_groups = session.query(FoodGroup).all()
+    no_food_groups = False
+
+    if len(food_groups) == 0:
+        no_food_groups = True
+
     if request.method == 'POST':
+
 
         # There are two different if statements here because there are
         # two different forms on this page. These distinguish between
@@ -187,7 +193,16 @@ def show_home_page():
 
         # Gather info to display food group
         if 'inputDifficulty' in request.form:
+
             food_group_id = request.form.get('inputFoodGroup')
+
+            if food_group_id == "-1":
+                response = """<script>
+                                window.location.replace('/');
+                                alert('There are no food groups, please add one');
+                              </script>"""
+                return response
+
             difficulty = request.form.get('inputDifficulty')
             return (redirect(url_for('show_food_group',
                     food_group_id=food_group_id,
@@ -219,6 +234,7 @@ def show_home_page():
             state = None
         food_groups = session.query(FoodGroup).all()
         return render_template('home.html',
+                               no_food_groups=no_food_groups,
                                food_groups=food_groups,
                                state=state,
                                username=username)
