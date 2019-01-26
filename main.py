@@ -131,7 +131,7 @@ def gconnect():
 
     # Check if user already exists in database. If not create new user
     if (session.query(User).filter_by(email=login_session['email'])
-        .first() == None):
+                           .first() is None):
         new_user = User(username=login_session['username'],
                         email=login_session['email'])
         session.add(new_user)
@@ -184,7 +184,6 @@ def show_home_page():
 
     if request.method == 'POST':
 
-
         # There are two different if statements here because there are
         # two different forms on this page. These distinguish between
         # which form to use and gather info from.
@@ -197,7 +196,8 @@ def show_home_page():
             if food_group_id == "-1":
                 response = """<script>
                                 window.location.replace('/');
-                                alert('There are no food groups, please add one');
+                                alert(`There are no food groups,
+                                       please add one`);
                               </script>"""
                 return response
 
@@ -342,7 +342,8 @@ def edit_food_item(food_group_id, difficulty, food_item_id):
 
     session = DBSession()
     food_item = session.query(FoodItem).filter_by(id=food_item_id).one()
-    creator = session.query(User).filter_by(email=food_item.creator_email).one()
+    creator = (session.query(User)
+               .filter_by(email=food_item.creator_email).one())
 
     # Check if the current user is the one who created the item
     if (request.method == 'POST') and (login_session['email'] ==
@@ -379,7 +380,8 @@ def delete_food_item(food_group_id, difficulty, food_item_id):
 
     session = DBSession()
     food_item = session.query(FoodItem).filter_by(id=food_item_id).one()
-    creator = session.query(User).filter_by(email=food_item.creator_email).one()
+    creator = (session.query(User)
+               .filter_by(email=food_item.creator_email).one())
 
     # Check if the current user is the one who created the item
     if (request.method == 'POST') and (login_session['email'] ==
@@ -439,4 +441,4 @@ def get_food_item_json(food_group_id, difficulty, food_item_id):
 if __name__ == '__main__':
     app.secret_key = 'super secret key'
     app.debug = True
-    app.run(host='0.0.0.0', port=2000)
+    app.run(host='0.0.0.0', port=8000)
