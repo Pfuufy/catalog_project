@@ -52,6 +52,8 @@ def get_csrf_token():
 def gconnect():
     """Login function for Google login"""
 
+    session = DBSession()
+
     # Validate state token
     if request.args.get('state') != login_session['state']:
         response = make_response(json.dumps('Invalid state parameter.'), 401)
@@ -127,14 +129,10 @@ def gconnect():
         login_session['username'] = 'username'
     login_session['email'] = data['email']
 
-    # Check if user already logged in
-    try:
-        gplus_id = (login_session.query(User)
-                    .filter_by(gplus_id=login_session['gplus_id']).one())
-    except:
-        session = DBSession()
+    # Check if user already exists in database. If not create new user
+    if (session.query(User).filter_by(email=login_session['email'])
+        .first() == None):
         new_user = User(username=login_session['username'],
-                        gplus_id=login_session['gplus_id'],
                         email=login_session['email'])
         session.add(new_user)
         session.commit()
@@ -344,19 +342,11 @@ def edit_food_item(food_group_id, difficulty, food_item_id):
 
     session = DBSession()
     food_item = session.query(FoodItem).filter_by(id=food_item_id).one()
-    creator_gplus_id = (session.query(User)
-                        .filter_by(gplus_id=food_item.creator_gplus_id.one()))
+    creator = session.query(User).filter_by(email=food_item.creator_email).one()
 
-    # I'm verifying authenticity based on the gplus_id for a few reasons:
-    # 1. It's unique.
-    # 2. It's already stored in the login_session.
-    # 3. Google login is currently the only way to login anyway.
-    # 4. Verifying by email is not fully reliable. It is likely that there
-    # would be no problems, but I want to safeguard against someone somehow
-    # logging in under someone else's old email and using that.
-
-    if (request.method == 'POST') and (login_session['gplus_id'] ==
-                                       creator_gplus_id):
+    # Check if the current user is the one who created the item
+    if (request.method == 'POST') and (login_session['email'] ==
+                                       creator.email):
 
         # Gather item details to edit item if new information is present
         if request.form['name']:
@@ -389,12 +379,11 @@ def delete_food_item(food_group_id, difficulty, food_item_id):
 
     session = DBSession()
     food_item = session.query(FoodItem).filter_by(id=food_item_id).one()
-    creator_gplus_id = (session.query(User)
-                        .filter_by(gplus_id=food_item.creator_gplus_id.one()))
+    creator = session.query(User).filter_by(email=food_item.creator_email).one()
 
-    # Delete food item
-    if (request.method == 'POST') and (login_session['gplus_id'] ==
-                                       creator_gplus_id):
+    # Check if the current user is the one who created the item
+    if (request.method == 'POST') and (login_session['email'] ==
+                                       creator.email):
         session.delete(food_item)
         session.commit()
         return redirect(url_for('show_food_group',

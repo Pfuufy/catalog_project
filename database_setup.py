@@ -14,8 +14,7 @@ class User(Base):
 
     username = Column(String(100))
     id = Column(Integer, primary_key=True)
-    gplus_id = Column(Integer, nullable=False)
-    email = Column(String(300), nullable=False)
+    email = Column(String(100), nullable=False)
 
 
 class FoodGroup(Base):
@@ -41,7 +40,7 @@ class FoodItem(Base):
     description = Column(String(150), nullable=False)
     recipe = Column(String(1000), nullable=False)
     creator = relationship(User)
-    creator_gplus_id = Column(String(100), ForeignKey('User.gplus_id'))
+    creator_email = Column(String(100), ForeignKey('User.email'))
     food_group = relationship(FoodGroup)
     food_group_id = Column(Integer, ForeignKey('FoodGroup.id'))
 
@@ -53,7 +52,7 @@ class FoodItem(Base):
             'difficulty': self.difficulty,
             'description': self.description,
             'recipe': self.recipe,
-            'creator_gplus_id': self.creator_gplus_id
+            'creator_email': self.creator_email
         }
 
 
